@@ -39,7 +39,7 @@ class Cropper
      * Allow jpg and png to thumb and cache generate
      * @var array allowed media types
      */
-    private static array $allowedExt = ['image/jpeg', "image/png"];
+    private static array $allowedExt = ['image/jpeg', "image/png", "image/webp"];
 
     /** @var ConversionFailedException */
     public ConversionFailedException $exception;
@@ -271,6 +271,35 @@ class Cropper
         }
 
         return "{$this->cachePath}/{$this->imageName}.png";
+    }
+
+        /**
+     * @param int $width
+     * @param int $height
+     * @param int $src_x
+     * @param int $src_y
+     * @param int $src_w
+     * @param int $src_h
+     * @return string
+     */
+    private function fromWebp(int $width, int $height, int $src_x, int $src_y, int $src_w, int $src_h): string
+    {
+        $thumb = imagecreatetruecolor($width, $height);
+        $source = imagecreatefromwebp($this->imagePath); 
+
+        // Copia a área da imagem original para a miniatura
+        imagecopyresampled($thumb, $source, 0, 0, $src_x, $src_y, $width, $height, $src_w, $src_h);
+
+        // Salva a miniatura como WebP
+        $webpPath = "{$this->cachePath}/{$this->imageName}.webp";
+        imagewebp($thumb, $webpPath, $this->compressor);
+
+        // Libera a memória das imagens
+        imagedestroy($thumb);
+        imagedestroy($source);
+
+        // Retorna o caminho da imagem WebP
+        return $webpPath;
     }
 
     /**
